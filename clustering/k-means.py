@@ -38,7 +38,7 @@ plt.subplots_adjust(left=0.1, right=0.98, bottom=0.05, top=0.98, wspace=0.2,
 
 n_cluster = 2
 for i in range(len(data_sets_2d)):
-	if i == 4 or i == 9 or i == 10:
+	if i == 3 or i == 8 or i == 10:
 		n_cluster += 1 # manually increasing cluster number
 	X = utils.load_dot_mat('data/DB.mat', 'DB/' + data_sets_2d[i])
 	y_pred = KMeans(n_clusters=n_cluster).fit_predict(X)
