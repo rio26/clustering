@@ -23,19 +23,6 @@ plt.figure()
 plt.subplots_adjust(left=0.1, right=0.98, bottom=0.05, top=0.98, wspace=0.2,
                     hspace=0.3)
 
-# clustering_algorithms = (
-#         ('MiniBatchKMeans', two_means),
-#         ('AffinityPropagation', affinity_propagation),
-#         ('MeanShift', ms),
-#         ('SpectralClustering', spectral),
-#         ('Ward', ward),
-#         ('AgglomerativeClustering', average_linkage),
-#         ('DBSCAN', dbscan),
-#         ('Birch', birch),
-#         ('GaussianMixture', gmm)
-#     )
-
-
 n_cluster = 2
 for i in range(len(data_sets_2d)):
 	if i == 3 or i == 8 or i == 10:
@@ -47,7 +34,3 @@ for i in range(len(data_sets_2d)):
 
 plt.tight_layout()
 plt.show()
-
-# fig = plt.figure()
-# ax = Axes3D(fig)
-# ax.scatter(X[:, 0], X[:, 1], X[:, 2])
