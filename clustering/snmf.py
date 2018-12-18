@@ -25,19 +25,11 @@ class SNMF():
       -- h_init: weight matrix with size r x n  (r is the number of cluster)
       -- Output: w, h
     """
-    def __init__(self, x, h_init = None, r = 2, batch_number = 10, max_iter = 100):
-        self.x = x.todense()
+    def __init__(self, x, h_init = None, r = 2, max_iter = 100):
+        self.x = x
         self.r = r
         self.max_iter = max_iter
-        
         print("Constructor call: The matrix's row and column are: ", self.x.shape[0], self.x.shape[1], "total iteration: ", self.max_iter)
-        
-        self.batch_number = batch_number
-        self.batch_number_range = self.x.shape[0]
-        self.mini_batch_size = math.ceil(x.shape[0] / self.batch_number)
-        self.batch_x = np.asmatrix(np.zeros((self.mini_batch_size,self.mini_batch_size)))
-        print("Constructor call: Batch number is : ", batch_number, " with mini_batch_size: ", self.mini_batch_size, "batch_x has shape:", self.batch_x.shape)
-
         self.h = h_init
         self.errors = np.zeros(self.max_iter)
 
@@ -50,54 +42,47 @@ class SNMF():
             error = None
         return error
 
-    def bgd_solver(self, alpha = 0.001, eps = None, debug = None):
-        if(self.batch_number == 1):        # normal MUR
-            for iter in range(self.max_iter):
-                self.errors[iter] = LA.norm(self.x - self.h * self.h.T)
-                numerator = self.x*self.h
-                denominator = (((self.h*self.h.T)*self.h) + 2 ** -8)
-                self.h = np.multiply(self.h, np.divide(numerator, denominator))
+    #  L2-norm with Nesterov's Optimal Gradient Method
+    def nest_solver(self, beta= 1E-3):
+        L = 1
+        alpha1=1
+        gamma = 1
+        h_prev = self.h 
+        # alpha = 0.05 / (2*L)
+        grad = self.grad(self.x, self.h)
 
-        else:
-            batch_h = np.asmatrix(np.zeros((self.mini_batch_size,self.r)))
-            for iter in range(self.max_iter):  # stochastic MUR     
-                self.errors[iter] = np.linalg.norm(self.x - self.h * self.h.T, 'fro') # record error
-                tmp_list = self.generate_random_numbers(upper_bound = self.batch_number_range, num = self.mini_batch_size)                
-                
-                # an ugly matrix to create batch matrix
-                i = 0
-                while i < len(tmp_list):
-                    j = i
-                    batch_h[i,:] = self.h[tmp_list[i],:]
-                    while j < len(tmp_list):
-                        self.batch_x[i,j] = self.x[tmp_list[i],tmp_list[j]]
-                        self.batch_x[j,i] = self.x[tmp_list[i],tmp_list[j]]
-                        j += 1
-                    i += 1
+        # H=Z;    % Initialization
+        # Grad=WtW*Z-WtV+beta*Z*Lp;     % Gradient
+        # alpha1=1;
 
-                grad = 4 * (batch_h * batch_h.T * batch_h - self.batch_x * batch_h)
-                # print("grad", grad)
-                update = batch_h - alpha * grad
-
-                i = 0
-                while i < len(tmp_list):
-                    j = 0
-                    count = 0
-                    while j < update.shape[1]:
-                        if update[i,j] < 0:
-                            update[i,j] = 0
-                            count += 1
-                        j += 1
-
-                    self.h[tmp_list[i],:] = update[i,:]   
-                    i += 1
+        for iter in range(self.max_iter):
+            self.errors[iter] = LA.norm(self.x - self.h * self.h.T)  # record error
+            print(self.errors[iter])
+            h0 = h_prev
+            h_prev = self.proj_to_positive(self.h - beta * grad)            
+            alpha2 = 0.5 * (1 + math.sqrt(1 + 4 * alpha1 * alpha1))
+            self.h = ((alpha1 - 1) / alpha2) * (h_prev - h0)
+            alpha1 = alpha2
+            grad = self.grad(self.x, self.h)
         return self.h
+
+    def grad(self,x,h):
+        return 4 * (h * h.T * h - x * h)
 
     def get_error_trend(self):
         return self.errors
 
-    # generate a list of random number from range [0, range], with size num
-    def generate_random_numbers(self, upper_bound, num):
-        seq = list(range(0,upper_bound))
-        return random.sample(seq,num)
+    def proj_to_positive(self, matrix):
+        i = 0
+        count = 0
+        while i < matrix.shape[0]:
+            j = 0
+            while j < matrix.shape[1]:
+                if matrix[i,j] < 0:
+                    matrix[i,j] = 0
+                    count += 1
+                j += 1
+            i += 1
+        # print(count)
+        return matrix
 
