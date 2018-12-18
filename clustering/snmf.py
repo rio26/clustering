@@ -59,6 +59,7 @@ class SNMF():
             h0 = h_prev
             h_prev = self.proj_to_positive(self.h - beta * grad)            
             alpha2 = 0.5 * (1 + math.sqrt(1 + 4 * alpha1 * alpha1))
+            print("stepsize: ", (alpha1 - 1) / alpha2)
             self.h = h_prev + ((alpha1 - 1) / alpha2) * (h_prev - h0)
             alpha1 = alpha2
             grad = self.grad(self.x, self.h)

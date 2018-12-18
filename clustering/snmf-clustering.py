@@ -26,21 +26,23 @@ LABEL_COLOR_MAP = {0 : 'y',
                    5 : 'r'}
 
 n_cluster = 2
-# for i in range(len(data_sets_2d)):
 flag = True
-for i in range(len(data_sets_2d)):
+# for i in range(len(data_sets_2d)):
+for i in range(2):
 	if i == 3 or i == 8 or i == 10:
 		n_cluster += 1 # manually increasing cluster number
 	X0 = np.asmatrix(utils.load_dot_mat('data/DB.mat', 'DB/' + data_sets_2d[i]))
+	print("Running on dataset:", i, " with cluster number: ", n_cluster, "...")
 	X = X0 * X0.T
 	# print(type(X))
 	initial_h = np.asmatrix(np.random.rand(X.shape[0], n_cluster))  
-	cluster = SNMF.SNMF(X, h_init = initial_h, r = n_cluster, max_iter =1000)
+	cluster = SNMF.SNMF(X, h_init = initial_h, r = n_cluster, max_iter =100)
 	print("Staring error: ",cluster.frobenius_norm())
 	cluster_result = cluster.nest_solver()
+
 	error = cluster.get_error_trend()
 	# plt.plot(error)
-	print("Final error: ",cluster.frobenius_norm())
+	print("Final error: ",cluster.frobenius_norm(), "Task ", i, " done. \n")
 	# print(cluster_result[0,:])
 	y_pred =  np.zeros([X.shape[0]])
 	for row in range(len(y_pred)):
