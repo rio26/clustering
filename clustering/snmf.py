@@ -44,9 +44,7 @@ class SNMF():
 
     #  L2-norm with Nesterov's Optimal Gradient Method
     def nest_solver(self, beta= 1E-3):
-        L = 1
         alpha1=1
-        gamma = 1
         h_prev = self.h 
         # alpha = 0.05 / (2*L)
         grad = self.grad(self.x, self.h)
@@ -57,11 +55,11 @@ class SNMF():
 
         for iter in range(self.max_iter):
             self.errors[iter] = LA.norm(self.x - self.h * self.h.T)  # record error
-            print(self.errors[iter])
+            # print(self.errors[iter])
             h0 = h_prev
             h_prev = self.proj_to_positive(self.h - beta * grad)            
             alpha2 = 0.5 * (1 + math.sqrt(1 + 4 * alpha1 * alpha1))
-            self.h = ((alpha1 - 1) / alpha2) * (h_prev - h0)
+            self.h = h_prev + ((alpha1 - 1) / alpha2) * (h_prev - h0)
             alpha1 = alpha2
             grad = self.grad(self.x, self.h)
         return self.h

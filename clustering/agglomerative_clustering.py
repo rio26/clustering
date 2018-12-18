@@ -27,6 +27,7 @@ for i in range(len(data_sets_2d)):
 	X = utils.load_dot_mat('data/DB.mat', 'DB/' + data_sets_2d[i])
 	clustering = AgglomerativeClustering().fit(X)
 	y_pred = clustering.labels_
+	print("clustering.labels_ type:", type(clustering.labels_), clustering.labels_.shape)
 	plt.subplot(3,4,i+1)
 	plt.scatter(X[:, 0], X[:, 1],  c=y_pred, s = 5)
 
