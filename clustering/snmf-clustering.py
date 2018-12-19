@@ -27,21 +27,37 @@ LABEL_COLOR_MAP = {0 : 'y',
 
 n_cluster = 2
 flag = True
-# for i in range(len(data_sets_2d)):
-for i in range(2):
+for i in range(len(data_sets_2d)):
+# for i in range(2):
 	if i == 3 or i == 8 or i == 10:
 		n_cluster += 1 # manually increasing cluster number
 	X0 = np.asmatrix(utils.load_dot_mat('data/DB.mat', 'DB/' + data_sets_2d[i]))
+	min_diff = 0 - X0.min()
+	# print(X0.shape[0], X0.shape[1], "min_diff:", min_diff)
+	if min_diff > 1:
+		print("Target matrix has negative element(s). Setting them positive... \n")
+		for row in range(X0.shape[0]):
+			for col in range(X0.shape[1]):
+				# print("r", row, "c", col)
+				X0[row,col] = X0[row,col] + min_diff
+	# print("Line43: min_diff:", X0.min())
 	print("Running on dataset:", i, " with cluster number: ", n_cluster, "...")
 	X = X0 * X0.T
+	# print(X)
 	# print(type(X))
 	initial_h = np.asmatrix(np.random.rand(X.shape[0], n_cluster))  
-	cluster = SNMF.SNMF(X, h_init = initial_h, r = n_cluster, max_iter =100)
+	# initial_h = np.asmatrix(np.random.randint(0,X.max(),size=[X.shape[0], n_cluster]))
+
+	cluster = SNMF.SNMF(X, h_init = initial_h, r = n_cluster, max_iter =1000)
 	print("Staring error: ",cluster.frobenius_norm())
-	cluster_result = cluster.nest_solver()
+	# cluster_result = cluster.proj_solver()
+	# cluster_result = cluster.proj_solver_bug()
+	cluster_result = cluster.mur()
+
 
 	error = cluster.get_error_trend()
 	# plt.plot(error)
+	# print(error)
 	print("Final error: ",cluster.frobenius_norm(), "Task ", i, " done. \n")
 	# print(cluster_result[0,:])
 	y_pred =  np.zeros([X.shape[0]])

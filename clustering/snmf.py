@@ -31,6 +31,7 @@ class SNMF():
         self.max_iter = max_iter
         print("Constructor call: The matrix's row and column are: ", self.x.shape[0], self.x.shape[1], "total iteration: ", self.max_iter)
         self.h = h_init
+        # print("h_init:", h_init)
         self.errors = np.zeros(self.max_iter)
 
     def frobenius_norm(self):
@@ -42,16 +43,24 @@ class SNMF():
             error = None
         return error
 
+    def mur(self):
+        for iter in range(self.max_iter):
+            self.errors[iter] = LA.norm(self.x - self.h * self.h.T)
+            numerator = self.x*self.h
+            denominator = (((self.h*self.h.T)*self.h) + 2 ** -8)
+            self.h = np.multiply(self.h, np.divide(numerator, denominator))
+            pre_iter = iter - 1
+            if iter > 0 and abs(self.errors[iter]- self.errors[pre_iter]) < 0.0001:
+                print("Result converges at iteration: ", iter)
+                return self.h
+        return self.h
+
     #  L2-norm with Nesterov's Optimal Gradient Method
     def nest_solver(self, beta= 1E-3):
         alpha1=1
         h_prev = self.h 
         # alpha = 0.05 / (2*L)
         grad = self.grad(self.x, self.h)
-
-        # H=Z;    % Initialization
-        # Grad=WtW*Z-WtV+beta*Z*Lp;     % Gradient
-        # alpha1=1;
 
         for iter in range(self.max_iter):
             self.errors[iter] = LA.norm(self.x - self.h * self.h.T)  # record error
@@ -63,6 +72,59 @@ class SNMF():
             self.h = h_prev + ((alpha1 - 1) / alpha2) * (h_prev - h0)
             alpha1 = alpha2
             grad = self.grad(self.x, self.h)
+        return self.h
+
+    def proj_solver(self):
+        # alpha = 0.1
+        # beta = 0.9
+        for iter in range(self.max_iter):
+            self.errors[iter] = LA.norm(self.x - self.h * self.h.T)
+            # print("iter ", iter, ", error: ", self.errors[iter])
+            grad = self.grad(self.x, self.h)
+            self.h = self.proj_to_positive(self.h - 0.5 * grad)
+            # print(self.h)
+            # if iter > 1:
+            #     if self.errors[iter] - self.errors[iter - 1] < 0.00001:
+            #         return self.h
+            # if (iter%5 == 0):
+            #     alpha = alpha * beta
+            # print("iter:", iter, ", alpha: ", alpha)
+        return self.h
+
+    def proj_solver_bug(self):
+        alpha = 1
+        beta = 0.1
+        delta = 0.01
+        h_prev = self.h
+        decr_alpha = True
+        for iter in range(self.max_iter):
+            grad = self.grad(self.x, h_prev)
+            h_new = self.proj_to_positive(self.h - alpha * grad)
+            diff = h_new - h_prev
+            gradd = sum(sum(np.multiply(grad, diff)).T)
+            tmp = np.multiply(np.dot(np.dot(self.h , self.h.T), diff) ,diff)
+            dQd = sum(sum(tmp).T)
+            # print("line 79", gradd.shape)
+
+            suff_decr = 0.99*gradd + 0.5*dQd < 0
+            # print("line 81", suff_decr, "type:", type(suff_decr))
+            print("Line 83, iteration:", iter, "suff_decr:", (0.99*gradd + 0.5*dQd))
+            if iter == 1:
+                decr_alpha = not suff_decr;
+                h_prev = self.h
+            if decr_alpha:
+                # print("line 86", suff_decr, "type:", type(suff_decr))
+                if suff_decr:
+                    self.h = h_new;
+                    return self.h
+                else:
+                    alpha = alpha * beta;
+            else:
+                if not suff_decr or (h_prev == h_new).all():
+                    self.h = h_prev;
+                    return self.h
+                else:
+                    alpha = alpha/beta; h_prev = h_new;
         return self.h
 
     def grad(self,x,h):
