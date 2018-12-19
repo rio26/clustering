@@ -1,5 +1,5 @@
 ## Clustering Algorithms
-Clustering Algorithms call from lib with SNMF implemented myself
+All the clustering Algorithms are called from the scikit-lib.  Only SNMF was implemented by myself.
 
 ### Spectral clustering
 ![alt text](https://github.com/rio26/clustering/blob/master/clustering/result/spectral_clustering_12.png)
