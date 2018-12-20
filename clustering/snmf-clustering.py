@@ -3,7 +3,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.gridspec as gridspec
 import utils, SNMF
 import numpy as np
-
+from sklearn.metrics.pairwise import chi2_kernel, laplacian_kernel,polynomial_kernel
 
 ##  ALL datasets: 
 ##  2 clusters: 'happy', 'be2', 'hm', 'hm2'
@@ -27,27 +27,34 @@ LABEL_COLOR_MAP = {0 : 'y',
 
 n_cluster = 2
 flag = True
+
+### Data Pre-processing ###
 for i in range(len(data_sets_2d)):
 # for i in range(2):
 	if i == 3 or i == 8 or i == 10:
 		n_cluster += 1 # manually increasing cluster number
 	X0 = np.asmatrix(utils.load_dot_mat('data/DB.mat', 'DB/' + data_sets_2d[i]))
-	min_diff = 0 - X0.min()
-	# print(X0.shape[0], X0.shape[1], "min_diff:", min_diff)
+	min_diff = 0 - X0.min() + 1
 	if min_diff > 1:
 		print("Target matrix has negative element(s). Setting them positive... \n")
 		for row in range(X0.shape[0]):
 			for col in range(X0.shape[1]):
-				# print("r", row, "c", col)
 				X0[row,col] = X0[row,col] + min_diff
-	# print("Line43: min_diff:", X0.min())
+
+	initial_gamma = 1/X0.shape[0]
+	# kernel_X0 = utils.gaussian_kernel(X0, 3)
+	# kernel_X0 = chi2_kernel(X0, gamma=5)
+	# kernel_X0 = laplacian_kernel(X0, gamma=.3)
+	kernel_X0 = polynomial_kernel(X0, degree=2,  gamma=.5, coef0=1)
+
 	print("Running on dataset:", i, " with cluster number: ", n_cluster, "...")
-	X = X0 * X0.T
-	# print(X)
-	# print(type(X))
+	X = kernel_X0 * kernel_X0.T
+
+### Initialization ###
 	initial_h = np.asmatrix(np.random.rand(X.shape[0], n_cluster))  
 	# initial_h = np.asmatrix(np.random.randint(0,X.max(),size=[X.shape[0], n_cluster]))
 
+### Compute NMF ###
 	cluster = SNMF.SNMF(X, h_init = initial_h, r = n_cluster, max_iter =1000)
 	print("Staring error: ",cluster.frobenius_norm())
 	# cluster_result = cluster.proj_solver()

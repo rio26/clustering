@@ -20,5 +20,5 @@ Parameter wasn't adjusted, the result looks horrible.  (It looks like art tho.)
 ![alt text](https://github.com/rio26/clustering/blob/master/clustering/result/mean_shift_bd0.5_12.png)
 
 ### symmetric nonnegative matrix factorization
-Only implemented MUR for solving nmf. Still looking for the reason why it looks bad.
-![alt text](https://github.com/rio26/clustering/blob/master/clustering/result/sym_nmf_12_i1000.png)
+Results are shown separately in the result/snmf/ file.
+This behaves almost the same as kernel k-means.
