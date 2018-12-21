@@ -3,7 +3,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.gridspec as gridspec
 import utils, SNMF
 import numpy as np
-from sklearn.metrics.pairwise import chi2_kernel, laplacian_kernel,polynomial_kernel
+from sklearn.metrics.pairwise import chi2_kernel,sigmoid_kernel, laplacian_kernel,polynomial_kernel
 
 ##  ALL datasets: 
 ##  2 clusters: 'happy', 'be2', 'hm', 'hm2'
@@ -45,11 +45,12 @@ for i in range(len(data_sets_2d)):
 	# kernel_X0 = utils.gaussian_kernel(X0, 3)
 	# kernel_X0 = chi2_kernel(X0, gamma=5)
 	# kernel_X0 = laplacian_kernel(X0, gamma=.3)
-	kernel_X0 = polynomial_kernel(X0, degree=2,  gamma=.5, coef0=1)
+	# kernel_X0 = polynomial_kernel(X0, degree=2,  gamma=.5, coef0=1)
+	kernel_X0 = sigmoid_kernel(X0, gamma=0.1, coef0=0)
 
 	print("Running on dataset:", i, " with cluster number: ", n_cluster, "...")
 	X = kernel_X0 * kernel_X0.T
-
+	
 ### Initialization ###
 	initial_h = np.asmatrix(np.random.rand(X.shape[0], n_cluster))  
 	# initial_h = np.asmatrix(np.random.randint(0,X.max(),size=[X.shape[0], n_cluster]))
